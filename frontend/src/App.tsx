@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { 
   Cpu, Server, Database, Activity, Terminal, Zap, RefreshCw, 
-  CheckCircle2, MessageSquare, Send, X, Sun, Moon, 
-  BarChart3, ListTree, Play, Trash2, ExternalLink, Globe, HardDrive, Layers
+  MessageSquare, Send, X, Sun, Moon, Table2,
+  BarChart3, ExternalLink, Globe, HardDrive, Layers, Play, Trash2
 } from 'lucide-react';
-import { AreaChart, Area, BarChart, Bar, ResponsiveContainer, XAxis, Tooltip, YAxis } from 'recharts';
+import { AreaChart, Area, BarChart, Bar, ResponsiveContainer } from 'recharts';
 
 interface Project {
   id: string;
@@ -27,9 +27,15 @@ interface RabbitTask {
   timestamp: string;
 }
 
+interface DBTable {
+  tableName: string;
+  columns: { name: string; type: string }[];
+}
+
 export default function App() {
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [dbTables, setDbTables] = useState<DBTable[]>([]);
   const [loading, setLoading] = useState(true);
   const [title, setTitle] = useState('');
   const [techs, setTechs] = useState('React, Node.js, Python, FastAPI, Docker, RabbitMQ');
@@ -42,13 +48,12 @@ export default function App() {
   ]);
   const [chatLoading, setChatLoading] = useState(false);
 
-  const [auditPrompt, setAuditPrompt] = useState('Auditar resiliência do cluster');
+  const [auditPrompt, setAuditPrompt] = useState('{"action": "audit_cluster", "target": "k8s-nodes"}');
   const [rabbitQueue, setRabbitQueue] = useState<RabbitTask[]>([
-    { id: 'mq-1', task: 'Indexação de Logs de Segurança', status: 'Pendente', timestamp: new Date().toLocaleTimeString() },
-    { id: 'mq-2', task: 'Treinamento de Modelo RAG', status: 'Processando', timestamp: new Date().toLocaleTimeString() }
+    { id: '1a2b3c', task: '{"action": "index_logs", "service": "auth"}', status: 'Pendente', timestamp: new Date().toLocaleTimeString() },
+    { id: '9f8e7d', task: '{"action": "train_rag", "model": "llama3"}', status: 'Processando', timestamp: new Date().toLocaleTimeString() }
   ]);
 
-  // Histórico de métricas para os gráficos do Recharts
   const [metricHistory, setMetricHistory] = useState<{ time: string; cpu: number; ram: number; reqs: number }[]>(
     Array.from({ length: 15 }).map(() => ({ time: '', cpu: 0, ram: 0, reqs: 0 }))
   );
@@ -56,6 +61,7 @@ export default function App() {
   const [logs, setLogs] = useState<string[]>([
     "[System] Moa Hub Command Center inicializado com sucesso.",
     "[Network] Handshake estabelecido com API Core (Porta 4000).",
+    "[Database] Schema PostgreSQL sincronizado via Prisma.",
     "[RabbitMQ] Exchange e filas de mensageria assíncrona ativas."
   ]);
 
@@ -63,7 +69,6 @@ export default function App() {
     setLogs(prev => [`[${new Date().toLocaleTimeString()}] ${msg}`, ...prev.slice(0, 9)]);
   };
 
-  // Atualização em tempo real das métricas (Performance melhorada com arrays limitados)
   useEffect(() => {
     const interval = setInterval(() => {
       setMetricHistory(prev => {
@@ -87,11 +92,10 @@ export default function App() {
       addLog("Sincronização de portfólio PostgreSQL concluída.");
     } catch (error) {
       addLog("Aviso: Falha na comunicação com o PostgreSQL (Fallback visual ativo).");
-      // Dados de fallback mais bonitos para o portfólio
       if (projects.length === 0) {
         setProjects([
-          { id: '1', title: 'Plataforma Neural AI', description: 'Sistema distribuído para inferência de modelos LLM em tempo real com auto-scaling usando Kubernetes e filas.', techStack: ['Python', 'FastAPI', 'Redis', 'Docker'], createdAt: '' },
-          { id: '2', title: 'Fintech Transaction Core', description: 'Microsserviço de processamento de pagamentos com garantia de entrega e consistência eventual.', techStack: ['Node.js', 'NestJS', 'RabbitMQ', 'PostgreSQL'], createdAt: '' },
+          { id: '1', title: 'Plataforma Neural AI', description: 'Sistema distribuído para inferência de modelos LLM em tempo real com auto-scaling.', techStack: ['Python', 'FastAPI', 'Redis', 'Docker'], createdAt: '' },
+          { id: '2', title: 'Fintech Transaction Core', description: 'Microsserviço de processamento de pagamentos com garantia de entrega.', techStack: ['Node.js', 'NestJS', 'RabbitMQ', 'PostgreSQL'], createdAt: '' },
           { id: '3', title: 'Dashboard de Telemetria', description: 'Frontend de alta performance para visualização de milhões de data points em tempo real.', techStack: ['React', 'TypeScript', 'Recharts', 'Tailwind'], createdAt: '' },
         ]);
       }
@@ -100,8 +104,47 @@ export default function App() {
     }
   };
 
+  const fetchTables = async () => {
+    try {
+      const res = await axios.get('http://localhost:4000/db/schema');
+      setDbTables(res.data);
+    } catch (error) {
+      setDbTables([
+        {
+          tableName: 'Project',
+          columns: [
+            { name: 'id', type: 'UUID (PK)' },
+            { name: 'title', type: 'VARCHAR(255)' },
+            { name: 'description', type: 'TEXT' },
+            { name: 'techStack', type: 'VARCHAR[]' },
+            { name: 'createdAt', type: 'TIMESTAMP' }
+          ]
+        },
+        {
+          tableName: 'User',
+          columns: [
+            { name: 'id', type: 'UUID (PK)' },
+            { name: 'email', type: 'VARCHAR(150) UNIQUE' },
+            { name: 'role', type: 'ENUM("ADMIN", "USER")' },
+            { name: 'lastLogin', type: 'TIMESTAMP' }
+          ]
+        },
+        {
+          tableName: 'SystemLogs',
+          columns: [
+            { name: 'id', type: 'BIGSERIAL (PK)' },
+            { name: 'level', type: 'VARCHAR(50)' },
+            { name: 'message', type: 'TEXT' },
+            { name: 'timestamp', type: 'TIMESTAMP INDEXED' }
+          ]
+        }
+      ]);
+    }
+  };
+
   useEffect(() => {
     fetchProjects();
+    fetchTables();
   }, []);
 
   const handleCreateProject = async (e: React.FormEvent) => {
@@ -137,7 +180,6 @@ export default function App() {
     setChatLoading(true);
 
     try {
-      // CAPTURANDO O ESTADO ATUAL PARA A IA SABER O QUE ESTÁ ACONTECENDO
       const currentSystemState = {
         cpu: metricHistory[metricHistory.length - 1]?.cpu || 0,
         ram: metricHistory[metricHistory.length - 1]?.ram || 0,
@@ -149,7 +191,7 @@ export default function App() {
 
       const response = await axios.post('http://localhost:4000/chat', { 
         message: userMsg,
-        state: currentSystemState // Enviando o contexto invisível para o backend!
+        state: currentSystemState
       });
       
       setMessages(prev => [...prev, { sender: 'ai', text: response.data.reply }]);
@@ -162,41 +204,48 @@ export default function App() {
 
   const handleTriggerQueue = async () => {
     const newTask: RabbitTask = {
-      id: `mq-${Date.now().toString().slice(-4)}`, task: auditPrompt, status: 'Pendente', timestamp: new Date().toLocaleTimeString()
+      id: Math.random().toString(36).substring(2, 8), 
+      task: auditPrompt, 
+      status: 'Pendente', 
+      timestamp: new Date().toLocaleTimeString()
     };
-    addLog(`Enfileirando job [${newTask.id}]: "${auditPrompt}"`);
-    setRabbitQueue(prev => [newTask, ...prev.slice(0, 4)]);
+    addLog(`Message published to exchange default, routing key: moa_hub_tasks`);
+    setRabbitQueue(prev => [newTask, ...prev.slice(0, 19)]);
   };
 
   const processRabbitTask = (id: string) => {
     setRabbitQueue(prev => prev.map(t => t.id === id ? { ...t, status: 'Processando' } : t));
-    addLog(`Worker assumiu a tarefa [${id}]`);
+    addLog(`Consumer got message [${id}] - unacked`);
     setTimeout(() => {
       setRabbitQueue(prev => prev.filter(t => t.id !== id));
-      addLog(`Tarefa [${id}] processada (ACK).`);
-    }, 3000);
+      addLog(`Message [${id}] acked and removed.`);
+    }, 2000);
   };
 
   const deleteRabbitTask = (id: string) => {
     setRabbitQueue(prev => prev.filter(t => t.id !== id));
-    addLog(`Mensagem [${id}] descartada (NACK).`);
+    addLog(`Message [${id}] rejected (NACK).`);
   };
 
   const currentCpu = metricHistory[metricHistory.length - 1]?.cpu || 0;
   const currentRam = metricHistory[metricHistory.length - 1]?.ram || 0;
   const currentReqs = metricHistory[metricHistory.length - 1]?.reqs || 0;
 
+  // Cálculos para o painel do RabbitMQ
+  const rabbitReady = rabbitQueue.filter(t => t.status === 'Pendente').length;
+  const rabbitUnacked = rabbitQueue.filter(t => t.status === 'Processando').length;
+  const rabbitTotal = rabbitQueue.length;
+
   return (
     <div className={isDarkMode ? 'dark' : ''}>
       <div className="min-h-screen bg-slate-50 dark:bg-[#060B19] text-slate-800 dark:text-slate-100 p-4 sm:p-6 md:p-8 font-sans selection:bg-cyan-500 selection:text-white transition-colors duration-500 overflow-x-hidden">
         
-        {/* Background Gradients */}
         <div className="fixed top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-cyan-600/20 blur-[120px] pointer-events-none"></div>
         <div className="fixed bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-600/20 blur-[120px] pointer-events-none"></div>
 
         <div className="max-w-7xl mx-auto space-y-8 relative z-10">
           
-          {/* HEADER HUD */}
+          {/* HEADER PRINCIPAL */}
           <header className="bg-white/70 dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 p-5 rounded-3xl shadow-xl flex flex-col md:flex-row justify-between items-center gap-6 transition-colors">
             <div className="flex items-center gap-4 w-full md:w-auto">
               <div className="p-3 bg-gradient-to-br from-cyan-500/20 to-indigo-500/20 border border-cyan-500/30 rounded-2xl text-cyan-500 shadow-inner">
@@ -247,9 +296,9 @@ export default function App() {
             ))}
           </div>
 
-          {/* GRÁFICOS EM TEMPO REAL (RECHARTS) */}
+          {/* GRÁFICOS EM TEMPO REAL */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Gráfico CPU */}
+            {/* CPU */}
             <div className="bg-white/70 dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-lg relative overflow-hidden group">
               <div className="flex justify-between items-center mb-6 relative z-10">
                 <h3 className="text-sm font-bold flex items-center gap-2 text-slate-600 dark:text-slate-300">
@@ -272,7 +321,7 @@ export default function App() {
               </div>
             </div>
 
-            {/* Gráfico RAM */}
+            {/* RAM */}
             <div className="bg-white/70 dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-lg relative overflow-hidden">
               <div className="flex justify-between items-center mb-6 relative z-10">
                 <h3 className="text-sm font-bold flex items-center gap-2 text-slate-600 dark:text-slate-300">
@@ -295,7 +344,7 @@ export default function App() {
               </div>
             </div>
 
-            {/* Gráfico Tráfego */}
+            {/* Network */}
             <div className="bg-white/70 dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-lg relative overflow-hidden">
               <div className="flex justify-between items-center mb-6 relative z-10">
                 <h3 className="text-sm font-bold flex items-center gap-2 text-slate-600 dark:text-slate-300">
@@ -313,136 +362,223 @@ export default function App() {
             </div>
           </div>
 
-          {/* GRID PRINCIPAL DE AÇÕES E LOGS */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             
-            {/* COLUNA ESQUERDA (Interações) */}
+            {/* COLUNA ESQUERDA */}
             <div className="lg:col-span-7 space-y-8">
               
-              {/* CADASTRAR PROJETO */}
+              {/* RABBITMQ MANAGEMENT UI (CLONE REAL) */}
+              <div className="bg-white dark:bg-[#1a1f2b] border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl overflow-hidden font-sans shadow-orange-500/5">
+                
+                {/* Header estilo RabbitMQ */}
+                <div className="bg-[#ff6600] text-white px-4 py-2.5 flex justify-between items-center shadow-md relative z-10">
+                  <div className="font-bold text-lg flex items-center gap-2 tracking-tight">
+                    RabbitMQ Management
+                  </div>
+                  <div className="text-[11px] sm:text-xs font-medium bg-black/10 px-3 py-1 rounded">
+                    User: guest | Virtual host: /
+                  </div>
+                </div>
+
+                {/* Abas Superiores */}
+                <div className="flex overflow-x-auto bg-[#f8f9fa] dark:bg-[#111827] border-b border-slate-300 dark:border-slate-700 text-xs sm:text-sm hide-scrollbar">
+                  {['Overview', 'Connections', 'Channels', 'Exchanges'].map(tab => (
+                    <div key={tab} className="px-4 py-2.5 text-slate-500 dark:text-slate-400 whitespace-nowrap border-r border-slate-200 dark:border-slate-800">
+                      {tab}
+                    </div>
+                  ))}
+                  <div className="px-4 py-2.5 bg-white dark:bg-[#1a1f2b] border-t-2 border-[#ff6600] font-bold text-slate-800 dark:text-slate-100 whitespace-nowrap">
+                    Queues
+                  </div>
+                  <div className="px-4 py-2.5 text-slate-500 dark:text-slate-400 whitespace-nowrap border-l border-slate-200 dark:border-slate-800">
+                    Admin
+                  </div>
+                </div>
+
+                <div className="p-4 sm:p-5 space-y-6">
+                  
+                  {/* Tabela de Queues */}
+                  <div>
+                    <h3 className="font-bold text-lg mb-3 text-slate-800 dark:text-slate-200">All queues</h3>
+                    <div className="overflow-x-auto border border-slate-300 dark:border-slate-700 rounded-lg">
+                      <table className="w-full text-left text-sm">
+                        <thead className="bg-slate-100 dark:bg-slate-800/80 border-b border-slate-300 dark:border-slate-700">
+                          <tr>
+                            <th className="px-3 py-2.5 text-slate-700 dark:text-slate-300 font-semibold">Name</th>
+                            <th className="px-3 py-2.5 text-slate-700 dark:text-slate-300 font-semibold">Features</th>
+                            <th className="px-3 py-2.5 text-slate-700 dark:text-slate-300 font-semibold">State</th>
+                            <th className="px-3 py-2.5 bg-blue-50 dark:bg-blue-900/10 text-center border-l border-slate-300 dark:border-slate-700 font-semibold">Ready</th>
+                            <th className="px-3 py-2.5 bg-pink-50 dark:bg-pink-900/10 text-center border-l border-slate-300 dark:border-slate-700 font-semibold">Unacked</th>
+                            <th className="px-3 py-2.5 bg-green-50 dark:bg-green-900/10 text-center border-l border-slate-300 dark:border-slate-700 font-semibold">Total</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+                          <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                            <td className="px-3 py-2.5 font-bold text-blue-600 dark:text-blue-400 cursor-pointer">moa_hub_tasks</td>
+                            <td className="px-3 py-2.5 text-[10px]">
+                              <span className="bg-[#ff6600]/10 text-[#ff6600] border border-[#ff6600]/20 px-1.5 py-0.5 rounded font-bold">D</span>
+                            </td>
+                            <td className="px-3 py-2.5">
+                              <span className="text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-2 py-0.5 rounded text-xs font-bold">running</span>
+                            </td>
+                            <td className="px-3 py-2.5 text-center border-l border-slate-200 dark:border-slate-700 font-mono text-slate-800 dark:text-slate-200 bg-blue-50/50 dark:bg-blue-900/5">{rabbitReady}</td>
+                            <td className="px-3 py-2.5 text-center border-l border-slate-200 dark:border-slate-700 font-mono text-slate-800 dark:text-slate-200 bg-pink-50/50 dark:bg-pink-900/5">{rabbitUnacked}</td>
+                            <td className="px-3 py-2.5 text-center border-l border-slate-200 dark:border-slate-700 font-mono font-bold text-slate-800 dark:text-slate-200 bg-green-50/50 dark:bg-green-900/5">{rabbitTotal}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  {/* Publish Message Panel */}
+                  <div className="border border-slate-300 dark:border-slate-700 rounded-lg overflow-hidden shadow-sm">
+                    <div className="bg-gradient-to-b from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 px-4 py-2.5 font-bold text-sm border-b border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-between">
+                      Publish message
+                      <span className="text-[10px] bg-white dark:bg-slate-700 px-2 py-1 rounded border border-slate-200 dark:border-slate-600">Exchange: default</span>
+                    </div>
+                    <div className="p-4 bg-white dark:bg-[#1a1f2b] space-y-4">
+                       <div className="flex flex-col gap-1.5">
+                         <label className="text-xs font-bold text-slate-600 dark:text-slate-400">Payload:</label>
+                         <textarea
+                           value={auditPrompt}
+                           onChange={(e) => setAuditPrompt(e.target.value)}
+                           className="w-full border border-slate-300 dark:border-slate-600 rounded-md bg-slate-50 dark:bg-[#0f172a] p-3 text-sm font-mono focus:ring-2 focus:ring-[#ff6600]/50 focus:border-[#ff6600] outline-none transition-all h-20 text-slate-800 dark:text-slate-200"
+                         />
+                       </div>
+                       <button
+                         onClick={handleTriggerQueue}
+                         className="bg-[#ff6600] hover:bg-[#e65c00] text-white px-5 py-2 rounded font-bold text-sm transition-colors shadow-sm active:scale-95 w-full sm:w-auto"
+                       >
+                         Publish message
+                       </button>
+                    </div>
+                  </div>
+
+                  {/* Get Messages Panel */}
+                  <div className="border border-slate-300 dark:border-slate-700 rounded-lg overflow-hidden shadow-sm">
+                    <div className="bg-gradient-to-b from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 px-4 py-2.5 font-bold text-sm border-b border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200">
+                      Get messages
+                    </div>
+                    <div className="p-0 bg-white dark:bg-[#1a1f2b] max-h-[300px] overflow-y-auto">
+                       {rabbitQueue.length === 0 ? (
+                         <div className="text-center p-8 text-slate-400 text-sm">Queue is empty</div>
+                       ) : (
+                         <div className="divide-y divide-slate-100 dark:divide-slate-800/50">
+                           {rabbitQueue.map(t => (
+                             <div key={t.id} className="p-4 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+                               <div className="flex-1 min-w-0">
+                                 <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                                   Message ID: <span className="text-[#ff6600]">{t.id}</span>
+                                 </div>
+                                 <div className="font-mono text-xs text-slate-800 dark:text-slate-300 truncate bg-slate-100 dark:bg-slate-900 p-2 rounded border border-slate-200 dark:border-slate-700">
+                                   {t.task}
+                                 </div>
+                               </div>
+                               <div className="flex gap-2 w-full sm:w-auto shrink-0">
+                                 {t.status === 'Pendente' && (
+                                   <button onClick={() => processRabbitTask(t.id)} className="flex-1 sm:flex-none flex items-center justify-center gap-1 bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400 dark:hover:bg-green-900/60 px-3 py-1.5 rounded text-xs font-bold transition-colors">
+                                     <Play className="w-3 h-3" /> ACK
+                                   </button>
+                                 )}
+                                 <button onClick={() => deleteRabbitTask(t.id)} className="flex-1 sm:flex-none flex items-center justify-center gap-1 bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/60 px-3 py-1.5 rounded text-xs font-bold transition-colors">
+                                   <Trash2 className="w-3 h-3" /> NACK
+                                 </button>
+                               </div>
+                             </div>
+                           ))}
+                         </div>
+                       )}
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+              {/* DB EXPLORER */}
+              <div className="bg-white/80 dark:bg-slate-900/60 backdrop-blur-xl border border-slate-200 dark:border-slate-800 p-8 rounded-3xl shadow-lg">
+                <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-semibold mb-2 text-xs uppercase tracking-wider">
+                  <Database className="w-4 h-4" /> DB Explorer
+                </div>
+                <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6">Database Schema (PostgreSQL)</h2>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {dbTables.map((table, idx) => (
+                    <div key={idx} className="bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden flex flex-col shadow-sm">
+                      <div className="bg-slate-200 dark:bg-slate-800/80 px-4 py-3 flex items-center gap-2 border-b border-slate-300 dark:border-slate-700">
+                        <Table2 className="w-4 h-4 text-slate-600 dark:text-slate-400" />
+                        <span className="font-mono text-sm font-bold text-slate-800 dark:text-slate-200">{table.tableName}</span>
+                      </div>
+                      <div className="p-4 flex-1">
+                        <ul className="space-y-2">
+                          {table.columns.map((col, cIdx) => (
+                            <li key={cIdx} className="flex justify-between items-center text-xs font-mono">
+                              <span className="text-slate-600 dark:text-slate-400">{col.name}</span>
+                              <span className={`text-[10px] px-1.5 py-0.5 rounded ${
+                                col.type.includes('PK') || col.type.includes('ID') 
+                                ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' 
+                                : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                              }`}>
+                                {col.type}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+            </div>
+
+            {/* COLUNA DIREITA */}
+            <div className="lg:col-span-5 space-y-8">
+              
+              {/* ENGINE SINTESE PROJETO */}
               <div className="bg-white/80 dark:bg-slate-900/60 backdrop-blur-xl border border-slate-200 dark:border-slate-800 p-8 rounded-3xl shadow-lg relative overflow-hidden">
                 <div className="absolute -top-20 -right-20 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
                 
                 <div className="flex items-center gap-2 text-cyan-600 dark:text-cyan-400 font-semibold mb-2 text-xs uppercase tracking-wider">
                   <Cpu className="w-4 h-4" /> Engine de Síntese
                 </div>
-                <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-2">Deploy Novo Projeto</h2>
-                <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">
-                  Simule o cadastro de um projeto no portfólio. A IA analisará a stack e gerará a documentação de arquitetura no BD.
+                <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Deploy Novo Projeto</h2>
+                <p className="text-slate-500 dark:text-slate-400 text-xs mb-6">
+                  Simule o cadastro de um projeto. A IA vai analisar a stack e salvar no BD.
                 </p>
 
                 <form onSubmit={handleCreateProject} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-[11px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1.5 ml-1">Nome do Sistema</label>
-                      <input 
-                        type="text" 
-                        value={title} 
-                        onChange={(e) => setTitle(e.target.value)}
-                        placeholder="Ex: Pagamentos Core" 
-                        className="w-full bg-slate-50/50 dark:bg-slate-950/50 border border-slate-300 dark:border-slate-700/80 rounded-2xl px-5 py-3.5 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all text-sm"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[11px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1.5 ml-1">Stack (Separado por vírgula)</label>
-                      <input 
-                        type="text" 
-                        value={techs} 
-                        onChange={(e) => setTechs(e.target.value)}
-                        className="w-full bg-slate-50/50 dark:bg-slate-950/50 border border-slate-300 dark:border-slate-700/80 rounded-2xl px-5 py-3.5 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all text-sm"
-                      />
-                    </div>
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1.5 ml-1">Nome do Sistema</label>
+                    <input 
+                      type="text" 
+                      value={title} 
+                      onChange={(e) => setTitle(e.target.value)}
+                      placeholder="Ex: Pagamentos Core" 
+                      className="w-full bg-slate-50/50 dark:bg-slate-950/50 border border-slate-300 dark:border-slate-700/80 rounded-xl px-4 py-3 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1.5 ml-1">Stack (Separado por vírgula)</label>
+                    <input 
+                      type="text" 
+                      value={techs} 
+                      onChange={(e) => setTechs(e.target.value)}
+                      className="w-full bg-slate-50/50 dark:bg-slate-950/50 border border-slate-300 dark:border-slate-700/80 rounded-xl px-4 py-3 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all text-sm"
+                    />
                   </div>
                   <button 
                     type="submit" 
                     disabled={submitting}
-                    className="w-full bg-gradient-to-r from-cyan-600 to-indigo-600 hover:opacity-90 text-white font-bold py-4 px-8 rounded-2xl shadow-lg shadow-cyan-500/25 flex items-center justify-center gap-3 text-sm transition-all active:scale-[0.98]"
+                    className="w-full bg-gradient-to-r from-cyan-600 to-indigo-600 hover:opacity-90 text-white font-bold py-3 px-8 rounded-xl shadow-lg shadow-cyan-500/25 flex items-center justify-center gap-3 text-sm transition-all active:scale-[0.98]"
                   >
-                    <Zap className="w-5 h-5" />
-                    {submitting ? 'Sintetizando Arquitetura...' : 'Inicializar Pipeline'}
+                    <Zap className="w-4 h-4" />
+                    {submitting ? 'Processando...' : 'Criar Pipeline'}
                   </button>
                 </form>
               </div>
 
-              {/* RABBIT MQ PAINEL */}
-              <div className="bg-white/80 dark:bg-slate-900/60 backdrop-blur-xl border border-slate-200 dark:border-slate-800 p-8 rounded-3xl shadow-lg">
-                <div className="flex items-center gap-2 text-purple-600 dark:text-purple-400 font-semibold mb-2 text-xs uppercase tracking-wider">
-                  <ListTree className="w-4 h-4" /> Message Broker
-                </div>
-                <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Simulador de Fila (RabbitMQ)</h2>
-                
-                <div className="flex gap-2 mb-6 mt-4">
-                  <input 
-                    type="text" 
-                    value={auditPrompt} 
-                    onChange={(e) => setAuditPrompt(e.target.value)}
-                    className="flex-1 bg-slate-50/50 dark:bg-slate-950/50 border border-slate-300 dark:border-slate-700/80 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-purple-500/50 outline-none dark:text-white text-slate-900 transition-all"
-                  />
-                  <button 
-                    onClick={handleTriggerQueue}
-                    className="bg-purple-600 hover:bg-purple-500 text-white px-6 rounded-xl text-sm font-bold shadow-md shadow-purple-500/20 transition-colors"
-                  >
-                    Publish
-                  </button>
-                </div>
-
-                <div className="bg-slate-100/50 dark:bg-[#030712]/50 rounded-2xl border border-slate-200 dark:border-slate-800/80 p-3 overflow-y-auto space-y-2 min-h-[160px]">
-                  {rabbitQueue.length === 0 ? (
-                    <div className="h-full flex flex-col items-center justify-center text-slate-400 py-8">
-                      <ListTree className="w-8 h-8 mb-2 opacity-50" />
-                      <p className="text-sm">Exchange vazio. Nenhuma task na fila.</p>
-                    </div>
-                  ) : (
-                    rabbitQueue.map((t) => (
-                      <div key={t.id} className="bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 p-3 rounded-xl flex items-center justify-between shadow-sm group hover:border-purple-500/30 transition-colors">
-                        <div>
-                          <p className="text-sm font-bold text-slate-800 dark:text-slate-200 truncate max-w-[200px] sm:max-w-xs">{t.task}</p>
-                          <div className="flex items-center gap-2 mt-1 text-[10px] font-mono">
-                            <span className="text-purple-600 dark:text-purple-400 font-bold bg-purple-100 dark:bg-purple-900/30 px-1.5 py-0.5 rounded">
-                              ID: {t.id}
-                            </span>
-                            <span className={`${t.status === 'Processando' ? 'text-amber-500 animate-pulse' : 'text-slate-500'}`}>
-                              {t.status}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="flex gap-2">
-                          {t.status === 'Pendente' && (
-                            <button onClick={() => processRabbitTask(t.id)} title="Consumir Mensagem (ACK)" className="p-2 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 rounded-lg hover:bg-emerald-200 dark:hover:bg-emerald-900/60 transition">
-                              <Play className="w-4 h-4" />
-                            </button>
-                          )}
-                          <button onClick={() => deleteRabbitTask(t.id)} title="Descartar (NACK)" className="p-2 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/60 transition">
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* COLUNA DIREITA (Tech Stack & Logs) */}
-            <div className="lg:col-span-5 space-y-8">
-              
-              {/* MINHA STACK (Portfólio) */}
-              <div className="bg-white/80 dark:bg-slate-900/60 backdrop-blur-xl border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-lg">
-                <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2 uppercase tracking-wider">
-                  <Database className="w-4 h-4 text-cyan-500" /> Core Tech Stack
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {['TypeScript', 'React.js', 'Node.js', 'Python', 'FastAPI', 'Go', 'Docker', 'Kubernetes', 'AWS', 'PostgreSQL', 'MongoDB', 'RabbitMQ', 'Redis', 'GraphQL'].map(tech => (
-                    <span key={tech} className="text-xs font-medium bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 px-3 py-1.5 rounded-lg">
-                      {tech}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
               {/* LIVE LOGS TERMINAL */}
-              <div className="bg-[#0f172a] border border-slate-800 p-5 rounded-3xl shadow-2xl h-[380px] flex flex-col relative overflow-hidden group">
-                {/* Efeito de brilho de terminal no topo */}
+              <div className="bg-[#0f172a] border border-slate-800 p-5 rounded-3xl shadow-2xl h-[450px] flex flex-col relative overflow-hidden group">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent opacity-50"></div>
                 
                 <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-800">
@@ -456,9 +592,22 @@ export default function App() {
                   {logs.map((log, index) => (
                     <div key={index} className="text-slate-300 leading-relaxed border-l-2 border-slate-800 pl-3">
                       <span className="text-cyan-500 font-bold mr-2">~</span> 
-                      {/* Highlight de palavras-chave no log */}
                       <span dangerouslySetInnerHTML={{__html: log.replace(/(\[.*?\])/g, '<span class="text-indigo-400 font-bold">$1</span>').replace(/(Erro|Falha|Aviso)/g, '<span class="text-red-400">$1</span>').replace(/(Sucesso)/g, '<span class="text-emerald-400">$1</span>')}}></span>
                     </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* CORE TECH STACK */}
+              <div className="bg-white/80 dark:bg-slate-900/60 backdrop-blur-xl border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-lg">
+                <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2 uppercase tracking-wider">
+                  <Database className="w-4 h-4 text-cyan-500" /> Core Tech Stack
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {['TypeScript', 'React.js', 'Node.js', 'Python', 'FastAPI', 'Go', 'Docker', 'Kubernetes', 'AWS', 'PostgreSQL', 'MongoDB', 'RabbitMQ', 'Redis', 'GraphQL'].map(tech => (
+                    <span key={tech} className="text-[11px] font-medium bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 px-3 py-1.5 rounded-lg">
+                      {tech}
+                    </span>
                   ))}
                 </div>
               </div>
@@ -467,7 +616,7 @@ export default function App() {
           </div>
 
           {/* PORTFÓLIO DE ARQUITETURAS */}
-          <section className="pt-8">
+          <section className="pt-8 pb-16">
             <div className="flex items-end justify-between mb-8">
               <div>
                 <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-semibold mb-2 text-xs uppercase tracking-wider">
@@ -521,7 +670,7 @@ export default function App() {
           </section>
         </div>
 
-        {/* --- CHAT FLUTUANTE (Design Apple/Vercel) --- */}
+        {/* CHAT FLUTUANTE */}
         <div className="fixed bottom-6 right-6 z-50">
           {!isChatOpen ? (
             <button 
@@ -551,7 +700,7 @@ export default function App() {
                 </button>
               </div>
 
-              <div className="flex-1 p-5 overflow-y-auto space-y-4 text-sm bg-slate-50/50 dark:bg-transparent">
+              <div className="flex-1 p-5 overflow-y-auto space-y-4 text-sm bg-slate-50/50 dark:bg-transparent custom-scrollbar">
                 {messages.map((m, i) => (
                   <div key={i} className={`flex ${m.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
                     {m.sender === 'ai' && (
@@ -603,6 +752,9 @@ export default function App() {
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
     </div>
   );
