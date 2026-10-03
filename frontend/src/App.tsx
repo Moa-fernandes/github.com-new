@@ -3,8 +3,7 @@ import axios from 'axios';
 import { 
   Cpu, Server, Database, Activity, Terminal, Zap, RefreshCw, 
   CheckCircle2, MessageSquare, Send, X, Sun, Moon, 
-  BarChart3, ListTree, Play, Trash2, ExternalLink, Globe, HardDrive, Layers,
-  Code, User 
+  BarChart3, ListTree, Play, Trash2, ExternalLink, Globe, HardDrive, Layers
 } from 'lucide-react';
 import { AreaChart, Area, BarChart, Bar, ResponsiveContainer, XAxis, Tooltip, YAxis } from 'recharts';
 
@@ -219,15 +218,6 @@ export default function App() {
             </div>
 
             <div className="flex items-center gap-4 md:gap-6 w-full md:w-auto justify-between md:justify-end">
-              <div className="flex gap-2">
-                <a href="#" className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 hover:bg-cyan-100 dark:hover:bg-cyan-900/50 hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors">
-                  <Code className="w-5 h-5" />
-                </a>
-                <a href="#" className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 hover:bg-cyan-100 dark:hover:bg-cyan-900/50 hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors">
-                  <User className="w-5 h-5" />
-                </a>
-              </div>
-              <div className="h-8 w-px bg-slate-300 dark:bg-slate-700 hidden md:block"></div>
               <button 
                 onClick={() => setIsDarkMode(!isDarkMode)}
                 className="p-2.5 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-amber-400 hover:scale-105 transition-transform border border-slate-300 dark:border-slate-700"
