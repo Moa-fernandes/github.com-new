@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+pydantic
+langchain
+langgraph
+redis
+celery
+psycopg2-binary
+python-dotenv
+pika

@@ -1,0 +1,25 @@
+# Dependências do Node (Muito pesado, nunca suba para o GitHub)
+node_modules/
+
+# Variáveis de Ambiente (AQUI ESTÁ A PROTEÇÃO DA SUA CHAVE E SENHA DO BANCO)
+.env
+.env.*
+!.env.example
+
+# Pastas de Build (Código compilado)
+dist/
+build/
+.next/
+
+# Logs de Erro
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Prisma / Banco de Dados Local
+*.db
+*.db-journal
+
+# Arquivos de Sistema Operacional (Mac/Windows)
+.DS_Store
+Thumbs.db

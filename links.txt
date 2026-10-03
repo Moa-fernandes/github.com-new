@@ -1,0 +1,30 @@
+Links que estarão disponíveis no seu localhost após rodarmos tudo:
+Frontend: http://localhost:3000
+Backend Node (GraphQL Playground): http://localhost:4000/graphql
+Backend AI (FastAPI Docs): http://localhost:8000/docs
+Observabilidade (Grafana): http://localhost:3001 (admin/admin)
+Mensageria (RabbitMQ Management): http://localhost:15672 (guest/guest)
+Banco de Dados: PostgreSQL (5432) e MongoDB (27017)
+
+
+
+# Moacir Tech Hub - Localhost Links
+
+Aqui estão os links para você acessar as ferramentas assim que subir o docker-compose:
+
+## Infraestrutura & Bancos de Dados
+- **Postgres/MySQL UI (Adminer):** [http://localhost:8080](http://localhost:8080)
+  - *Dica: Use 'postgres' como server, 'admin' como user e 'password' como senha.*
+- **MongoDB (Compass/Local):** `mongodb://admin:password@localhost:27017`
+- **RabbitMQ Management:** [http://localhost:15672](http://localhost:15672)
+  - *User/Pass: guest / guest*
+
+## Observabilidade
+- **Grafana (Dashboards):** [http://localhost:3000](http://localhost:3000)
+  - *User/Pass: admin / admin*
+- **Prometheus (Metrics):** [http://localhost:9090](http://localhost:9090)
+
+## Aplicações (Em breve)
+- **Frontend (React):** [http://localhost:5173](http://localhost:5173)
+- **Backend Core (Node/GraphQL):** [http://localhost:4000/graphql](http://localhost:4000/graphql)
+- **AI Service (Python/FastAPI):** [http://localhost:8000/docs](http://localhost:8000/docs)

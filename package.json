@@ -1,0 +1,20 @@
+{
+  "name": "moacir-tech-hub",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Portfólio Interativo de Alta Performance - Moacir Tech Hub",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "docker-compose up",
+    "infra:up": "docker-compose up -d",
+    "infra:down": "docker-compose down",
+    "core:dev": "npm run dev -w @hub/api-core",
+    "web:dev": "npm run dev -w @hub/web-portfolio"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

@@ -1,0 +1,111 @@
+services:
+  # Database - Relational (Agendamentos e Core)
+  postgres:
+    image: postgres:15-alpine
+    container_name: hub-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: tech_hub_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - tech-hub-network
+
+  # Database - NoSQL (Logs e Dados não estruturados)
+  mongodb:
+    image: mongo:latest
+    container_name: hub-mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - tech-hub-network
+
+  # Cache & PubSub
+  redis:
+    image: redis:alpine
+    container_name: hub-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - tech-hub-network
+
+  # Message Broker (RabbitMQ para comunicação entre microsserviços)
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: hub-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672" # Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    networks:
+      - tech-hub-network
+
+  # Observability - Metrics (Prometheus)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: hub-prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - tech-hub-network
+
+  # Observability - Dashboards (Grafana)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: hub-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - prometheus
+    networks:
+      - tech-hub-network
+
+  # Database UI (Para você testar e ver os dados no browser)
+  adminer:
+    image: adminer
+    container_name: hub-adminer
+    ports:
+      - "8080:8080"
+    networks:
+      - tech-hub-network
+
+  # AI Service (Python + FastAPI)
+  ai-service:
+    build:
+      context: ./apps/ai-service
+    container_name: hub-ai-service
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./apps/ai-service:/app
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - DB_HOST=postgres
+      - DB_USER=admin
+      - DB_PASS=password
+      - DB_NAME=tech_hub_db
+    depends_on:
+      - redis
+      - postgres
+    networks:
+      - tech-hub-network
+
+networks:
+  tech-hub-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  mongo_data:
