@@ -186,23 +186,18 @@ export default function App() {
     setChatLoading(true);
 
     try {
-      const currentSystemState = {
-        cpu: metricHistory[metricHistory.length - 1]?.cpu || 0,
-        ram: metricHistory[metricHistory.length - 1]?.ram || 0,
-        reqs: metricHistory[metricHistory.length - 1]?.reqs || 0,
-        tasksNaFila: rabbitQueue.length,
-        totalProjetos: projects.length,
-        tecnologiasAtivas: "React, Node.js, Python, PostgreSQL, RabbitMQ, Docker"
-      };
-
-      const response = await axios.post('http://localhost:4000/chat', { 
-        message: userMsg,
-        state: currentSystemState
+      // Agora chamamos a Netlify Function criada em netlify/functions/gemini.ts
+      const response = await axios.post('/.netlify/functions/gemini', { 
+        prompt: userMsg 
       });
       
-      setMessages(prev => [...prev, { sender: 'ai', text: response.data.reply }]);
+      // Extrai o texto da resposta padrão da API do Gemini
+      const textoGerado = response.data.candidates[0].content.parts[0].text;
+
+      setMessages(prev => [...prev, { sender: 'ai', text: textoGerado }]);
     } catch (error) {
-      setMessages(prev => [...prev, { sender: 'ai', text: 'Erro de comunicação com a IA local/Cloud.' }]);
+      console.error(error);
+      setMessages(prev => [...prev, { sender: 'ai', text: 'Erro de comunicação com a função do Netlify/Gemini.' }]);
     } finally {
       setChatLoading(false);
     }
