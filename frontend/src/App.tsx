@@ -812,7 +812,7 @@ export default function App() {
         </div>
 
         {/* CHAT FLUTUANTE (SEU INTACTO) */}
-        <div className="fixed bottom-25 right-6 z-50">
+        <div className="fixed bottom-20 right-6 z-50">
           {!isChatOpen ? (
             <button 
               onClick={() => setIsChatOpen(true)}
