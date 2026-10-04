@@ -1,5 +1,8 @@
 import { Handler } from '@netlify/functions';
 
+// Importação necessária para o fetch funcionar em ambientes Node.js mais antigos no Netlify
+import fetch from 'node-fetch'; 
+
 export const handler: Handler = async (event) => {
   if (event.httpMethod !== 'POST') {
     return {
@@ -21,27 +24,44 @@ export const handler: Handler = async (event) => {
       };
     }
 
-    // CORREÇÃO AQUI: Mudamos de v1beta para v1 e usamos gemini-1.5-flash (sem -latest)
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-        }),
-      }
-    );
+    if (!prompt) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: 'Nenhum prompt fornecido.' }),
+      };
+    }
+
+    // URL Corrigida e Simplificada para o modelo universal estável (gemini-pro na v1)
+    const URL = `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${apiKey}`;
+
+    const response = await fetch(URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+      }),
+    });
 
     const data = await response.json();
 
     if (!response.ok) {
-      // Tenta pegar a mensagem específica do erro, se existir
-      const errorMessage = data.error?.message || 'Erro desconhecido da API do Gemini';
+      // Tratamento de erro mais detalhado para ajudar no debug
+      const errorDetails = data.error ? JSON.stringify(data.error) : 'Resposta inválida do Google AI';
+      console.error('Erro da API do Google:', errorDetails);
       return {
         statusCode: response.status,
-        body: JSON.stringify({ error: errorMessage }),
+        body: JSON.stringify({ 
+          error: `Google API Error (${response.status}): ${data.error?.message || 'Verifique a chave da API e o modelo.'}`
+        }),
       };
+    }
+
+    // Verificação da estrutura da resposta para evitar erros no frontend
+    if (!data.candidates || data.candidates.length === 0 || !data.candidates[0].content) {
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ error: 'A API do Google retornou sucesso, mas nenhum conteúdo foi gerado.' }),
+        };
     }
 
     return {
@@ -50,9 +70,10 @@ export const handler: Handler = async (event) => {
       body: JSON.stringify(data),
     };
   } catch (error: any) {
+    console.error('Erro interno na Netlify Function:', error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: error.message || 'Erro interno na função Netlify' }),
+      body: JSON.stringify({ error: error.message || 'Erro interno desconhecido no servidor Netlify' }),
     };
   }
 };
