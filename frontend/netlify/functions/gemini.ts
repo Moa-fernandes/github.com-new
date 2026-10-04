@@ -29,8 +29,8 @@ export const handler: Handler = async (event) => {
       };
     }
 
-    // A SOLUÇÃO FINAL: Usar gemini-1.5-flash, que é o modelo padrão universal hoje.
-    const URL = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    // ÚLTIMA TENTATIVA: Usar gemini-1.5-pro, que tem a maior chance de estar disponível na v1.
+    const URL = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent?key=${apiKey}`;
 
     const response = await fetch(URL, {
       method: 'POST',
