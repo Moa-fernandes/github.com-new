@@ -5,7 +5,8 @@ import {
   MessageSquare, Send, X, Sun, Moon, Table2,
   BarChart3, ExternalLink, Globe, HardDrive, Layers, Play, Trash2,
   ShieldCheck, GitBranch, GitCommit, Shield, Bug, Gauge, TrendingDown,
-  CheckCircle2, Code2, Network, Box, LayoutDashboard, GitPullRequest, Settings, Users, FileText, HelpCircle, HardDriveDownload
+  CheckCircle2, Code2, Network, Box, LayoutDashboard, Settings, 
+  FileText, Phone, Mail
 } from 'lucide-react';
 import { AreaChart, Area, BarChart, Bar, ResponsiveContainer, XAxis, Tooltip, YAxis } from 'recharts';
 
@@ -36,7 +37,9 @@ interface DBTable {
 
 export default function App() {
   const [isDarkMode, setIsDarkMode] = useState(true);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'projects' | 'cicd' | 'rabbitmq' | 'database' | 'logs' | 'finops'>('dashboard');
+  
+  // ABA ATIVA AGORA INCLUI DOCS E CENTRAL
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'projects' | 'cicd' | 'rabbitmq' | 'database' | 'logs' | 'finops' | 'docs' | 'central'>('dashboard');
   
   const [projects, setProjects] = useState<Project[]>([]);
   const [dbTables, setDbTables] = useState<DBTable[]>([]);
@@ -45,6 +48,7 @@ export default function App() {
   const [techs, setTechs] = useState('React, Node.js, Python, FastAPI, Docker, RabbitMQ');
   const [submitting, setSubmitting] = useState(false);
   
+  // ESTADOS DO CHAT
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [chatInput, setChatInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([
@@ -244,9 +248,9 @@ export default function App() {
     <div className={isDarkMode ? 'dark' : ''}>
       <div className="min-h-screen bg-[#0b0f19] text-slate-100 font-sans selection:bg-cyan-500 selection:text-white flex overflow-hidden">
         
-        {/* SIDEBAR ESTILO RAILWAY */}
+        {/* SIDEBAR */}
         <aside className="w-64 bg-[#070a12] border-r border-slate-800/80 flex flex-col justify-between select-none z-20">
-          <div>
+          <div className="overflow-y-auto hide-scrollbar">
             <div className="p-4 border-b border-slate-800/80 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center font-black text-white shadow-md">
@@ -318,18 +322,26 @@ export default function App() {
 
             <div className="p-3 space-y-1">
               <div className="px-3 py-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Recursos</div>
-              <a href="#" className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800/40">
+              <button 
+                onClick={() => setActiveTab('docs')}
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium transition-colors ${activeTab === 'docs' ? 'bg-slate-800/80 text-white shadow-inner' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'}`}
+              >
                 <FileText className="w-4 h-4" /> Docs & Manuais
-              </a>
-              <a href="#" className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800/40">
+              </button>
+              <button 
+                onClick={() => setActiveTab('central')}
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium transition-colors ${activeTab === 'central' ? 'bg-slate-800/80 text-white shadow-inner' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'}`}
+              >
                 <Network className="w-4 h-4" /> Central Station
-              </a>
+              </button>
             </div>
           </div>
 
           <div className="p-4 border-t border-slate-800/80 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold">MF</div>
+              <div className="w-7 h-7 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold overflow-hidden">
+                <img src="/Moacir.jpeg" alt="MF" className="w-full h-full object-cover" />
+              </div>
               <span className="text-xs font-medium truncate w-32">Moacir Fernandes</span>
             </div>
             <button 
@@ -342,9 +354,8 @@ export default function App() {
         </aside>
 
         {/* MAIN CONTENT CONTAINER */}
-        <main className="flex-1 flex flex-col h-screen overflow-y-auto bg-[#0b0f19] p-6 lg:p-8 space-y-6">
+        <main className="flex-1 flex flex-col h-screen overflow-y-auto bg-[#0b0f19] p-6 lg:p-8 space-y-6 custom-scrollbar relative">
           
-          {/* TOP BANNER TRIAL EXPIRED / NOTIFICATION */}
           <div className="bg-amber-500/10 border border-amber-500/30 text-amber-300 px-4 py-3 rounded-2xl flex justify-between items-center text-xs shadow-md">
             <div className="flex items-center gap-2 font-medium">
               <span className="bg-amber-500 text-black px-2 py-0.5 rounded font-bold text-[10px]">Trial Ended</span>
@@ -355,7 +366,6 @@ export default function App() {
             </button>
           </div>
 
-          {/* HEADER DA VIEW ATUAL */}
           <div className="flex justify-between items-center bg-slate-900/40 border border-slate-800/80 p-5 rounded-3xl backdrop-blur-md shadow-lg">
             <div>
               <h1 className="text-2xl font-black bg-gradient-to-r from-cyan-400 to-indigo-400 bg-clip-text text-transparent uppercase">
@@ -366,8 +376,14 @@ export default function App() {
                 {activeTab === 'database' && 'Database Schema & PostgreSQL Explorer'}
                 {activeTab === 'logs' && 'System Logs & Interactive Terminal'}
                 {activeTab === 'finops' && 'FinOps, Custos & Qualidade de Código'}
+                {activeTab === 'docs' && 'Documentação e Manuais (ReadMe)'}
+                {activeTab === 'central' && 'Central Station (Contato)'}
               </h1>
-              <p className="text-xs text-slate-400 mt-1 font-medium">Gerenciamento de infraestrutura distribuída e microsserviços</p>
+              <p className="text-xs text-slate-400 mt-1 font-medium">
+                {activeTab === 'docs' ? 'Repositório Oficial do Enterprise Command Center' : 
+                 activeTab === 'central' ? 'Portal de Comunicação e Suporte Técnico' : 
+                 'Gerenciamento de infraestrutura distribuída e microsserviços'}
+              </p>
             </div>
             <div className="flex items-center gap-3">
               <button 
@@ -379,7 +395,7 @@ export default function App() {
             </div>
           </div>
 
-          {/* CONTEÚDO DINÂMICO */}
+          {/* RENDENIZAÇÃO CONDICIONAL DO CONTEÚDO */}
           
           {(activeTab === 'dashboard' || activeTab === 'finops') && (
             <>
@@ -466,61 +482,59 @@ export default function App() {
                   </div>
                 </div>
               </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="bg-slate-900/50 border border-slate-800 p-6 rounded-3xl shadow-lg flex flex-col justify-between">
+                  <div className="flex items-center gap-2 text-emerald-400 font-bold text-xs uppercase tracking-wider mb-6">
+                    <ShieldCheck className="w-4 h-4" /> Qualidade de Código & Segurança
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 flex-1">
+                    <div className="bg-emerald-950/20 border border-emerald-800/50 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
+                      <Bug className="w-6 h-6 text-emerald-400 mb-2" />
+                      <span className="text-2xl font-black text-white">0</span>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase mt-1">Vulnerabilidades Críticas</span>
+                    </div>
+                    <div className="bg-blue-950/20 border border-blue-800/50 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
+                      <Code2 className="w-6 h-6 text-blue-400 mb-2" />
+                      <span className="text-2xl font-black text-white">92.4%</span>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase mt-1">Code Coverage (Testes)</span>
+                    </div>
+                    <div className="bg-indigo-950/20 border border-indigo-800/50 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
+                      <Shield className="w-6 h-6 text-indigo-400 mb-2" />
+                      <span className="text-2xl font-black text-white">Grade A</span>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase mt-1">Technical Debt Ratio</span>
+                    </div>
+                    <div className="bg-cyan-950/20 border border-cyan-800/50 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
+                      <GitCommit className="w-6 h-6 text-cyan-400 mb-2" />
+                      <span className="text-2xl font-black text-white">100%</span>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase mt-1">Code Review Approval</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-slate-900/50 border border-slate-800 p-6 rounded-3xl shadow-lg">
+                  <div className="flex justify-between items-center mb-6">
+                    <div className="flex items-center gap-2 text-amber-400 font-bold text-xs uppercase tracking-wider">
+                      <TrendingDown className="w-4 h-4" /> FinOps & Otimização de Custos
+                    </div>
+                    <div className="text-[10px] bg-emerald-950 text-emerald-400 px-2 py-1 rounded font-bold border border-emerald-800">
+                      Economia de 60%
+                    </div>
+                  </div>
+                  <div className="h-48 w-full -ml-4">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={finOpsData} layout="vertical" margin={{ top: 0, right: 30, left: 20, bottom: 0 }}>
+                        <XAxis type="number" hide />
+                        <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12, fontWeight: 600}} />
+                        <Tooltip cursor={{fill: 'transparent'}} contentStyle={{backgroundColor: '#0f172a', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '12px'}} />
+                        <Bar dataKey="Unoptimized" name="Sem Otimização ($)" fill="#64748b" radius={[0, 4, 4, 0]} barSize={12} />
+                        <Bar dataKey="Optimized" name="Arquitetura Otimizada ($)" fill="#10b981" radius={[0, 4, 4, 0]} barSize={12} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
             </>
-          )}
-
-          {(activeTab === 'dashboard' || activeTab === 'finops') && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-slate-900/50 border border-slate-800 p-6 rounded-3xl shadow-lg flex flex-col justify-between">
-                <div className="flex items-center gap-2 text-emerald-400 font-bold text-xs uppercase tracking-wider mb-6">
-                  <ShieldCheck className="w-4 h-4" /> Qualidade de Código & Segurança
-                </div>
-                <div className="grid grid-cols-2 gap-4 flex-1">
-                  <div className="bg-emerald-950/20 border border-emerald-800/50 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
-                    <Bug className="w-6 h-6 text-emerald-400 mb-2" />
-                    <span className="text-2xl font-black text-white">0</span>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase mt-1">Vulnerabilidades Críticas</span>
-                  </div>
-                  <div className="bg-blue-950/20 border border-blue-800/50 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
-                    <Code2 className="w-6 h-6 text-blue-400 mb-2" />
-                    <span className="text-2xl font-black text-white">92.4%</span>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase mt-1">Code Coverage (Testes)</span>
-                  </div>
-                  <div className="bg-indigo-950/20 border border-indigo-800/50 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
-                    <Shield className="w-6 h-6 text-indigo-400 mb-2" />
-                    <span className="text-2xl font-black text-white">Grade A</span>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase mt-1">Technical Debt Ratio</span>
-                  </div>
-                  <div className="bg-cyan-950/20 border border-cyan-800/50 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
-                    <GitCommit className="w-6 h-6 text-cyan-400 mb-2" />
-                    <span className="text-2xl font-black text-white">100%</span>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase mt-1">Code Review Approval</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-slate-900/50 border border-slate-800 p-6 rounded-3xl shadow-lg">
-                <div className="flex justify-between items-center mb-6">
-                  <div className="flex items-center gap-2 text-amber-400 font-bold text-xs uppercase tracking-wider">
-                    <TrendingDown className="w-4 h-4" /> FinOps & Otimização de Custos
-                  </div>
-                  <div className="text-[10px] bg-emerald-950 text-emerald-400 px-2 py-1 rounded font-bold border border-emerald-800">
-                    Economia de 60%
-                  </div>
-                </div>
-                <div className="h-48 w-full -ml-4">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={finOpsData} layout="vertical" margin={{ top: 0, right: 30, left: 20, bottom: 0 }}>
-                      <XAxis type="number" hide />
-                      <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12, fontWeight: 600}} />
-                      <Tooltip cursor={{fill: 'transparent'}} contentStyle={{backgroundColor: '#0f172a', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '12px'}} />
-                      <Bar dataKey="Unoptimized" name="Sem Otimização ($)" fill="#64748b" radius={[0, 4, 4, 0]} barSize={12} />
-                      <Bar dataKey="Optimized" name="Arquitetura Otimizada ($)" fill="#10b981" radius={[0, 4, 4, 0]} barSize={12} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-            </div>
           )}
 
           {(activeTab === 'dashboard' || activeTab === 'cicd') && (
@@ -732,8 +746,187 @@ export default function App() {
             </section>
           )}
 
+          {/* NOVA ABA: DOCS & MANUAIS */}
+          {activeTab === 'docs' && (
+            <div className="bg-slate-900/50 border border-slate-800 p-8 md:p-12 rounded-3xl shadow-lg w-full max-w-4xl mx-auto text-slate-300 space-y-8">
+              <div>
+                <h1 className="text-3xl font-black text-white mb-2">Moa Hub - Enterprise Command Center</h1>
+                <a href="#english-version" className="text-cyan-400 text-sm hover:underline font-medium">Read in English</a>
+              </div>
+              
+              <p className="text-base leading-relaxed">
+                O Moa Hub é uma plataforma de Command Center voltada para arquiteturas de microsserviços e integração com Inteligência Artificial. Este projeto serve como um portfólio técnico, demonstrando a implementação de padrões arquiteturais modernos, telemetria em tempo real, mensageria assíncrona e RAG (Retrieval-Augmented Generation) injetando estado na IA.
+              </p>
+
+              <div>
+                <h2 className="text-2xl font-bold text-white border-b border-slate-800 pb-2 mb-4">Arquitetura e Tecnologias</h2>
+                <p className="mb-4">A aplicação foi desenvolvida utilizando uma abordagem de microsserviços:</p>
+                <ul className="list-disc pl-6 space-y-2">
+                  <li><strong className="text-cyan-400">Frontend:</strong> React, TypeScript, Tailwind CSS, Recharts (para telemetria de CPU/RAM em tempo real).</li>
+                  <li><strong className="text-cyan-400">API Core (Backend):</strong> Node.js, Express, TypeScript.</li>
+                  <li><strong className="text-cyan-400">Banco de Dados:</strong> PostgreSQL gerenciado via Prisma ORM.</li>
+                  <li><strong className="text-cyan-400">Mensageria:</strong> RabbitMQ para processamento de filas de tarefas assíncronas.</li>
+                  <li><strong className="text-cyan-400">Inteligência Artificial:</strong> Integração com a API do Google Gemini (RAG) injetando métricas do sistema no contexto do LLM.</li>
+                </ul>
+              </div>
+
+              <div>
+                <h2 className="text-2xl font-bold text-white border-b border-slate-800 pb-2 mb-4">Funcionalidades Principais</h2>
+                <ol className="list-decimal pl-6 space-y-2">
+                  <li><strong>Dashboard de Telemetria:</strong> Visualização do estado do cluster simulado (uso de CPU, alocação de memória do banco e requisições por segundo).</li>
+                  <li><strong>Assistente IA com Contexto:</strong> Chatbot integrado que atua como Arquiteto de Software, lendo as métricas do painel em tempo real para tomar decisões e responder perguntas do usuário.</li>
+                  <li><strong>Fila de Mensageria:</strong> Interface para simular publicação e consumo de mensagens em filas assíncronas do RabbitMQ.</li>
+                  <li><strong>Síntese de Projetos:</strong> Cadastro de arquiteturas onde um microsserviço analisa a stack fornecida e gera documentações automatizadas no banco de dados.</li>
+                </ol>
+              </div>
+
+              <div>
+                <h2 className="text-2xl font-bold text-white border-b border-slate-800 pb-2 mb-4">Como Executar Localmente</h2>
+                <ol className="list-decimal pl-6 space-y-2 font-mono text-sm bg-slate-950 p-6 rounded-xl border border-slate-800">
+                  <li>Clone este repositório.</li>
+                  <li>Crie um arquivo .env na raiz com a sua GEMINI_API_KEY e DATABASE_URL.</li>
+                  <li>Instale as dependências com o comando: <span className="text-emerald-400">npm install</span></li>
+                  <li>Execute as migrations do banco de dados: <span className="text-emerald-400">npx prisma db push</span></li>
+                  <li>Inicie a aplicação com o comando: <span className="text-emerald-400">npm run dev</span></li>
+                </ol>
+              </div>
+            </div>
+          )}
+
+          {/* NOVA ABA: CENTRAL STATION (Perfil) */}
+          {activeTab === 'central' && (
+            <div className="flex-1 flex items-center justify-center py-12">
+              <div className="bg-slate-900/60 border border-slate-800 p-10 rounded-[2rem] shadow-2xl flex flex-col items-center text-center max-w-md w-full relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-r from-cyan-600 to-indigo-600 opacity-20"></div>
+                
+                <div className="w-32 h-32 mb-6 z-10 relative">
+                  <div className="absolute inset-0 rounded-full bg-cyan-500 animate-ping opacity-20"></div>
+                  <img 
+                    src="/Moacir.jpeg" 
+                    alt="Moacir Fernandes" 
+                    className="w-full h-full rounded-full object-cover border-4 border-slate-800 shadow-xl relative z-10"
+                  />
+                </div>
+                
+                <h2 className="text-3xl font-black text-white mb-2 z-10">Moacir Fernandes</h2>
+                <p className="text-cyan-400 font-mono text-sm mb-8 bg-cyan-950/30 px-4 py-1 rounded-full border border-cyan-900/50 z-10">
+                  Software Engineer & Architect
+                </p>
+
+                <div className="w-full space-y-4 z-10">
+                  <div className="bg-slate-950/50 border border-slate-800 p-4 rounded-2xl flex items-center gap-4 hover:border-slate-600 transition-colors cursor-pointer group">
+                    <div className="w-10 h-10 rounded-full bg-emerald-950/50 flex items-center justify-center text-emerald-400 group-hover:bg-emerald-900/50 transition-colors">
+                      <Phone className="w-5 h-5" />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Telefone / WhatsApp</p>
+                      <p className="text-slate-200 font-mono text-sm">21 9 7301-9585</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-950/50 border border-slate-800 p-4 rounded-2xl flex items-center gap-4 hover:border-slate-600 transition-colors cursor-pointer group">
+                    <div className="w-10 h-10 rounded-full bg-blue-950/50 flex items-center justify-center text-blue-400 group-hover:bg-blue-900/50 transition-colors">
+                      <Mail className="w-5 h-5" />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">E-mail Corporativo</p>
+                      <p className="text-slate-200 font-mono text-sm">moacirsistemax@gmail.com</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
         </main>
+        
+        {/* CHAT FLUTUANTE RESTAURADO E INDEPENDENTE DAS ABAS */}
+        <div className="fixed bottom-8 right-8 z-50">
+          {!isChatOpen ? (
+            <button 
+              onClick={() => setIsChatOpen(true)}
+              className="bg-gradient-to-r from-cyan-600 to-indigo-600 text-white p-4 rounded-full shadow-[0_10px_25px_rgba(8,145,178,0.4)] flex items-center gap-3 hover:scale-105 hover:-translate-y-1 transition-all duration-300 group"
+            >
+              <MessageSquare className="w-6 h-6 group-hover:animate-bounce" />
+            </button>
+          ) : (
+            <div className="bg-slate-900/95 backdrop-blur-2xl border border-slate-700/80 rounded-3xl shadow-2xl w-[90vw] sm:w-[400px] flex flex-col h-[500px] overflow-hidden transform origin-bottom-right transition-all animate-in fade-in zoom-in duration-200">
+              
+              <div className="bg-gradient-to-r from-slate-800 to-slate-900 p-4 border-b border-slate-800 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="relative">
+                    <div className="w-8 h-8 bg-cyan-900/50 rounded-full flex items-center justify-center">
+                      <Cpu className="w-4 h-4 text-cyan-400" />
+                    </div>
+                    <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-slate-900"></span>
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-sm text-white leading-tight">Moa AI</h3>
+                    <p className="text-[10px] text-slate-400">Arquiteto de Software Virtual</p>
+                  </div>
+                </div>
+                <button onClick={() => setIsChatOpen(false)} className="text-slate-400 hover:text-slate-200 transition-colors p-2 bg-slate-800/50 rounded-full">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="flex-1 p-5 overflow-y-auto space-y-4 text-sm bg-transparent custom-scrollbar">
+                {messages.map((m, i) => (
+                  <div key={i} className={`flex ${m.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    {m.sender === 'ai' && (
+                       <div className="w-6 h-6 rounded-full bg-cyan-900/50 flex items-center justify-center mr-2 mt-1 flex-shrink-0">
+                         <span className="text-[10px] font-bold text-cyan-400">AI</span>
+                       </div>
+                    )}
+                    <div className={`max-w-[80%] p-3.5 rounded-2xl shadow-sm ${m.sender === 'user' ? 'bg-gradient-to-br from-cyan-600 to-cyan-700 text-white rounded-br-sm' : 'bg-slate-800 border border-slate-700 text-slate-200 rounded-bl-sm'}`}>
+                      {m.text}
+                    </div>
+                  </div>
+                ))}
+                {chatLoading && (
+                  <div className="flex justify-start items-center">
+                    <div className="bg-slate-800 border border-slate-700 p-3.5 rounded-2xl rounded-bl-sm flex gap-1.5 shadow-sm">
+                      <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                      <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <form onSubmit={handleSendMessage} className="p-4 bg-slate-900 border-t border-slate-800">
+                <div className="relative flex items-center">
+                  <input 
+                    type="text" 
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    placeholder="Faça uma pergunta sobre código..."
+                    className="w-full bg-slate-800 border border-slate-700 rounded-full pl-5 pr-12 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all"
+                  />
+                  <button 
+                    type="submit" 
+                    disabled={chatLoading} 
+                    className="absolute right-1.5 p-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-full transition-colors disabled:opacity-50"
+                  >
+                    <Send className="w-4 h-4" />
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+        </div>
+
       </div>
+      
+      {/* Estilos Globais Auxiliares */}
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
+        
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      `}</style>
     </div>
   );
 }
