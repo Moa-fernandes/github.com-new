@@ -2,3 +2,4 @@
   base = "frontend"
   command = "npm install && npm run build"
   publish = "dist"
+  functions = "netlify/functions"

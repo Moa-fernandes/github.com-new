@@ -12,7 +12,8 @@
     "infra:up": "docker-compose up -d",
     "infra:down": "docker-compose down",
     "core:dev": "npm run dev -w @hub/api-core",
-    "web:dev": "npm run dev -w @hub/web-portfolio"
+    "web:dev": "npm run dev -w @hub/web-portfolio",
+    "build": "npm run build -w @hub/web-portfolio"
   },
   "devDependencies": {
     "typescript": "^5.0.0"
