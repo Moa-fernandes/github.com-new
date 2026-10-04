@@ -1,38 +1,35 @@
-import { Handler } from '@netlify/functions';
-import fetch from 'node-fetch'; 
-
-export const handler: Handler = async (event) => {
-  if (event.httpMethod !== 'POST') {
-    return {
-      statusCode: 405,
-      body: JSON.stringify({ error: 'Método não permitido' }),
-    };
+export default async (req: Request) => {
+  if (req.method !== 'POST') {
+    return new Response(JSON.stringify({ error: 'Método não permitido' }), {
+      status: 405,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 
   try {
-    const body = JSON.parse(event.body || '{}');
+    const body = await req.json() as { prompt?: string; message?: string };
     const prompt = body.prompt || body.message;
 
     const apiKey = process.env.GEMINI_API_KEY;
 
     if (!apiKey) {
-      return {
-        statusCode: 500,
-        body: JSON.stringify({ error: 'Erro no Servidor: A variável GEMINI_API_KEY não está configurada no Netlify.' }),
-      };
+      return new Response(JSON.stringify({ error: 'Erro no Servidor: A variável GEMINI_API_KEY não está configurada no Netlify.' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
 
     if (!prompt) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ error: 'Nenhum prompt fornecido.' }),
-      };
+      return new Response(JSON.stringify({ error: 'Nenhum prompt fornecido.' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
 
-    // ÚLTIMA TENTATIVA: Usar gemini-1.5-pro, que tem a maior chance de estar disponível na v1.
-    const URL = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent?key=${apiKey}`;
+    // Usando o endpoint oficial atualizado da API do Google (v1beta com gemini-1.5-flash)
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
-    const response = await fetch(URL, {
+    const googleResponse = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -40,36 +37,26 @@ export const handler: Handler = async (event) => {
       }),
     });
 
-    const data = await response.json() as any;
+    const data = await googleResponse.json() as any;
 
-    if (!response.ok) {
-      console.error('Erro da API do Google:', JSON.stringify(data.error));
-      return {
-        statusCode: response.status,
-        body: JSON.stringify({ 
-          error: `Google API Error (${response.status}): ${data.error?.message || 'Verifique o modelo e a chave.'}`
-        }),
-      };
+    if (!googleResponse.ok) {
+      return new Response(JSON.stringify({ 
+        error: `Google API Error: ${data.error?.message || 'Erro desconhecido'}` 
+      }), {
+        status: googleResponse.status,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
 
-    // Verificação de estrutura de resposta
-    if (!data.candidates || data.candidates.length === 0 || !data.candidates[0].content) {
-        return {
-            statusCode: 500,
-            body: JSON.stringify({ error: 'A API do Google retornou sucesso, mas nenhum conteúdo foi gerado.' }),
-        };
-    }
-
-    return {
-      statusCode: 200,
+    return new Response(JSON.stringify(data), {
+      status: 200,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    };
+    });
+
   } catch (error: any) {
-    console.error('Erro interno na Netlify Function:', error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: error.message || 'Erro interno desconhecido no servidor Netlify' }),
-    };
+    return new Response(JSON.stringify({ error: error.message || 'Erro interno na função' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 };
