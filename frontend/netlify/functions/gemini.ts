@@ -21,9 +21,9 @@ export const handler: Handler = async (event) => {
       };
     }
 
-    // Usando o alias correto e atualizado para o modelo flash do Gemini
+    // CORREÇÃO AQUI: Mudamos de v1beta para v1 e usamos gemini-1.5-flash (sem -latest)
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -36,9 +36,11 @@ export const handler: Handler = async (event) => {
     const data = await response.json();
 
     if (!response.ok) {
+      // Tenta pegar a mensagem específica do erro, se existir
+      const errorMessage = data.error?.message || 'Erro desconhecido da API do Gemini';
       return {
         statusCode: response.status,
-        body: JSON.stringify({ error: data.error?.message || 'Erro na API do Google Gemini' }),
+        body: JSON.stringify({ error: errorMessage }),
       };
     }
 
@@ -50,7 +52,7 @@ export const handler: Handler = async (event) => {
   } catch (error: any) {
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: error.message || 'Erro interno na função' }),
+      body: JSON.stringify({ error: error.message || 'Erro interno na função Netlify' }),
     };
   }
 };
