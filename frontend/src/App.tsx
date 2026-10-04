@@ -186,23 +186,22 @@ export default function App() {
     setChatLoading(true);
 
     try {
-      // Agora chamamos a Netlify Function criada em netlify/functions/gemini.ts
       const response = await axios.post('/.netlify/functions/gemini', { 
         prompt: userMsg 
       });
       
-      // Extrai o texto da resposta padrão da API do Gemini
       const textoGerado = response.data.candidates[0].content.parts[0].text;
-
       setMessages(prev => [...prev, { sender: 'ai', text: textoGerado }]);
-    } catch (error) {
-      console.error(error);
-      setMessages(prev => [...prev, { sender: 'ai', text: 'Erro de comunicação com a função do Netlify/Gemini.' }]);
+    } catch (error: any) {
+      console.error("Erro detalhado:", error);
+      // Pega a mensagem exata de erro que veio do Netlify ou da função
+      const mensagemErro = error.response?.data?.error || error.message || 'Erro desconhecido';
+      setMessages(prev => [...prev, { sender: 'ai', text: `Erro: ${mensagemErro}` }]);
     } finally {
       setChatLoading(false);
     }
   };
-
+  
   const handleTriggerQueue = async () => {
     const newTask: RabbitTask = {
       id: Math.random().toString(36).substring(2, 8), 
