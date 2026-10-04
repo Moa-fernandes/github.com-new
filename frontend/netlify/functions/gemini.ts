@@ -1,6 +1,4 @@
 import { Handler } from '@netlify/functions';
-
-// Importação necessária para o fetch funcionar em ambientes Node.js mais antigos no Netlify
 import fetch from 'node-fetch'; 
 
 export const handler: Handler = async (event) => {
@@ -31,8 +29,8 @@ export const handler: Handler = async (event) => {
       };
     }
 
-    // URL Corrigida e Simplificada para o modelo universal estável (gemini-pro na v1)
-    const URL = `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${apiKey}`;
+    // A SOLUÇÃO FINAL: Usar gemini-1.5-flash, que é o modelo padrão universal hoje.
+    const URL = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
     const response = await fetch(URL, {
       method: 'POST',
@@ -42,21 +40,19 @@ export const handler: Handler = async (event) => {
       }),
     });
 
-    const data = await response.json();
+    const data = await response.json() as any;
 
     if (!response.ok) {
-      // Tratamento de erro mais detalhado para ajudar no debug
-      const errorDetails = data.error ? JSON.stringify(data.error) : 'Resposta inválida do Google AI';
-      console.error('Erro da API do Google:', errorDetails);
+      console.error('Erro da API do Google:', JSON.stringify(data.error));
       return {
         statusCode: response.status,
         body: JSON.stringify({ 
-          error: `Google API Error (${response.status}): ${data.error?.message || 'Verifique a chave da API e o modelo.'}`
+          error: `Google API Error (${response.status}): ${data.error?.message || 'Verifique o modelo e a chave.'}`
         }),
       };
     }
 
-    // Verificação da estrutura da resposta para evitar erros no frontend
+    // Verificação de estrutura de resposta
     if (!data.candidates || data.candidates.length === 0 || !data.candidates[0].content) {
         return {
             statusCode: 500,
