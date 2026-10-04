@@ -23,3 +23,5 @@ yarn-error.log*
 # Arquivos de Sistema Operacional (Mac/Windows)
 .DS_Store
 Thumbs.db
+# Local Netlify folder
+.netlify
