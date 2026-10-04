@@ -10,17 +10,18 @@ export const handler: Handler = async (event) => {
 
   try {
     const body = JSON.parse(event.body || '{}');
-    const prompt = body.prompt || body.message; // Aceita tanto prompt quanto message
+    const prompt = body.prompt || body.message;
 
     const apiKey = process.env.GEMINI_API_KEY;
 
     if (!apiKey) {
       return {
         statusCode: 500,
-        body: JSON.stringify({ error: 'Erro no Servidor: A variável GEMINI_API_KEY não está configurada no painel do Netlify.' }),
+        body: JSON.stringify({ error: 'Erro no Servidor: A variável GEMINI_API_KEY não está configurada no Netlify.' }),
       };
     }
 
+    // Usando o alias correto e atualizado para o modelo flash do Gemini
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
       {
@@ -37,7 +38,7 @@ export const handler: Handler = async (event) => {
     if (!response.ok) {
       return {
         statusCode: response.status,
-        body: JSON.stringify({ error: data.error?.message || 'Erro retornado pela API do Google Gemini' }),
+        body: JSON.stringify({ error: data.error?.message || 'Erro na API do Google Gemini' }),
       };
     }
 
@@ -49,7 +50,7 @@ export const handler: Handler = async (event) => {
   } catch (error: any) {
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: error.message || 'Erro interno na função do Netlify' }),
+      body: JSON.stringify({ error: error.message || 'Erro interno na função' }),
     };
   }
 };
